@@ -76,6 +76,10 @@ th{background:var(--forest);color:var(--ivory)}
   a{color:#000}
 }
 
+.datewrap{display:flex;flex-wrap:wrap;gap:.75rem;align-items:center}
+.datewrap input[type=date]{flex:1 1 12rem;max-width:16rem}
+.calbtn{flex:none}
+
 </style>
 </head>
 <body>
@@ -114,8 +118,7 @@ th{background:var(--forest);color:var(--ivory)}
         <textarea id="obstacle"></textarea>
         <label class="lbl" for="helper" style="margin-top:1rem">Who can I ask for help? (instructor, counselor, coach, family, friend)</label>
         <textarea id="helper"></textarea>
-        <label class="lbl" for="checkin" style="margin-top:1rem">I will look at this plan again on</label>
-        <input type="date" id="checkin">
+        <div id="checkinWrap"></div>
       </div>
       <div class="row"><button type="button" class="btn" id="makeBtn">Make my plan</button></div>
     </form>
@@ -151,8 +154,25 @@ function el(tag, attrs, kids){
   (kids||[]).forEach(function(c){ e.appendChild(c); });
   return e;
 }
+function dateField(id,label,who){
+  var wrap = el("div",{style:"margin-bottom:1rem"});
+  wrap.appendChild(el("label",{"class":"lbl","for":id,text:label}));
+  wrap.appendChild(el("p",{"class":"hint",id:id+"h",text:"Select Open calendar and click a day, or type the date: month, then day, then year. You can skip this if you are not sure yet."}));
+  var row = el("div",{"class":"datewrap"});
+  var inp = el("input",{type:"date",id:id,"aria-describedby":id+"h "+id+"s"});
+  var btn = el("button",{type:"button","class":"btn2 calbtn","aria-label":"Open calendar for "+who,text:"Open calendar"});
+  btn.addEventListener("click", function(){
+    try { if(inp.showPicker){ inp.showPicker(); } else { inp.focus(); } } catch(e){ inp.focus(); }
+  });
+  var st = el("p",{"class":"hint",id:id+"s",role:"status",style:"margin:.5rem 0 0",text:"No date chosen yet."});
+  function upd(){ st.textContent = inp.value ? "Date chosen: "+fmt(inp.value) : "No date chosen yet."; }
+  inp.addEventListener("change", upd); inp.addEventListener("input", upd);
+  row.appendChild(inp); row.appendChild(btn); wrap.appendChild(row); wrap.appendChild(st);
+  return wrap;
+}
 var N = 3;
 var acts = $("actions");
+var ck = dateField("checkin","I will look at this plan again on","the plan check-in date"); ck.style.marginTop = "1rem"; $("checkinWrap").appendChild(ck);
 for(var i=1;i<=N;i++){
   (function(i){
     var c = el("fieldset",{});
@@ -167,7 +187,7 @@ for(var i=1;i<=N;i++){
     }
     c.appendChild(field("act"+i,"What will I do?", i===1?"Example: Go to the math tutoring center each week.":""));
     c.appendChild(field("step"+i,"What is my first small step?", i===1?"Example: Look up the tutoring center hours.":""));
-    c.appendChild(field("date"+i,"By when?","", "date"));
+    c.appendChild(dateField("date"+i,"By when?","Action "+i+" date"));
     c.appendChild(field("help"+i,"What help do I need?",""));
     acts.appendChild(c);
   })(i);
