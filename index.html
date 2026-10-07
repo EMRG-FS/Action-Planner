@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Action Planner</title>
+<meta name="description" content="Turn one goal into a short plan with small first steps, dates, and the help you need.">
+<style>
+:root{--forest:#013220;--gold:#C6A15B;--warm:#7B7B7B;--ivory:#F8F5E9;--char:#333333;--sage:#A3B18A;--coral:#D97A6A;--sky:#89B6A5;--sage-tint:#E4EADA;--coral-tint:#F7E0DB;--sky-tint:#DCEBE5;--white:#FFFFFF}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{font-size:100%}
+body{margin:0;background:var(--ivory);color:var(--char);font-family:Verdana,"DejaVu Sans",sans-serif;font-size:1.125rem;line-height:1.6}
+.skip{position:absolute;left:-999px;top:0;background:var(--white);color:var(--forest);padding:.6rem 1rem;z-index:10;font-weight:bold}
+.skip:focus{left:12px;top:8px}
+header.band{background:var(--forest);color:var(--ivory);padding:1.5rem 1rem 1.75rem;border-bottom:5px solid var(--gold)}
+.wrap{max-width:52rem;margin:0 auto}
+.kicker{color:var(--gold);font-weight:bold;font-size:1rem;letter-spacing:.04em;margin:0 0 .4rem}
+h1{font-size:1.9rem;line-height:1.25;margin:0 0 .5rem}
+header p{margin:0;font-size:1.125rem}
+main{max-width:52rem;margin:0 auto;padding:1.5rem 1rem 3rem}
+h2{color:var(--forest);font-size:1.5rem;line-height:1.3;margin:0 0 .75rem}
+h3{color:var(--forest);font-size:1.25rem;line-height:1.3;margin:1.25rem 0 .5rem}
+h2:focus{outline:none}
+p{margin:0 0 1rem}
+.card{background:var(--white);border:2px solid var(--sage);border-radius:10px;padding:1.25rem;margin:0 0 1.25rem}
+.note{background:var(--sky-tint);border-left:6px solid var(--forest);padding:.75rem 1rem;border-radius:0 8px 8px 0;margin:0 0 1.25rem}
+.warn{background:var(--coral-tint);border-left:6px solid var(--coral);padding:.75rem 1rem;border-radius:0 8px 8px 0;margin:0 0 1rem;color:#5a1f14}
+fieldset{border:2px solid var(--warm);border-radius:8px;margin:0 0 1rem;padding:.75rem 1rem 1rem;background:var(--white)}
+legend{font-weight:bold;color:var(--forest);padding:0 .4rem;font-size:1.125rem}
+.opts{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem}
+.opt{display:flex;align-items:center;gap:.5rem;border:2px solid var(--warm);border-radius:8px;padding:.5rem .75rem;min-height:48px;background:var(--white);cursor:pointer;font-size:1rem}
+.opt input{width:1.25rem;height:1.25rem;margin:0;accent-color:var(--forest)}
+.opt:has(input:checked){background:var(--sage-tint);border-color:var(--forest);font-weight:bold}
+label.lbl{display:block;font-weight:bold;color:var(--forest);margin:0 0 .35rem}
+.hint{font-size:1rem;margin:0 0 .5rem;color:#4a4a4a}
+input[type=text],input[type=date],textarea,select{width:100%;font:inherit;font-size:1rem;color:var(--char);background:var(--white);border:2px solid var(--warm);border-radius:8px;padding:.6rem .7rem;min-height:48px}
+textarea{min-height:6.5rem;resize:vertical}
+button{font:inherit;font-size:1rem;cursor:pointer;min-height:48px;border-radius:8px;padding:.6rem 1.25rem;font-weight:bold}
+.btn{background:var(--forest);color:var(--ivory);border:2px solid var(--forest)}
+.btn:hover{background:#024a2f}
+.btn2{background:var(--white);color:var(--forest);border:2px solid var(--forest)}
+.btn2:hover{background:var(--sage-tint)}
+.row{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:1rem}
+:focus-visible{outline:3px solid var(--forest);outline-offset:3px}
+.btn:focus-visible{outline-color:var(--forest);box-shadow:0 0 0 3px var(--ivory),0 0 0 6px var(--forest)}
+.progress{font-size:1rem;font-weight:bold;color:var(--forest);margin:0 0 .5rem}
+.bar{height:12px;background:var(--sage-tint);border:2px solid var(--sage);border-radius:8px;overflow:hidden;margin:0 0 1.25rem}
+.bar span{display:block;height:100%;background:var(--forest)}
+.err{margin:0 0 1rem}
+.err:empty{display:none}
+.badge{display:inline-block;background:var(--forest);color:var(--ivory);border-radius:6px;padding:.1rem .6rem;font-size:1rem;font-weight:bold;margin-left:.5rem}
+.badge.alt{background:var(--sage-tint);color:var(--forest);border:2px solid var(--forest)}
+ul.plain{margin:0 0 1rem;padding-left:1.4rem}
+ul.plain li{margin:.25rem 0}
+.score{font-weight:bold}
+.fallback{width:100%;min-height:10rem;font-family:Verdana,"DejaVu Sans",sans-serif}
+footer{max-width:52rem;margin:0 auto;padding:1rem 1rem 2.5rem;border-top:2px solid var(--sage);font-size:1rem}
+footer p{margin:0 0 .5rem}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:1rem}
+th,td{border:2px solid var(--warm);padding:.5rem .6rem;text-align:left;vertical-align:top;background:var(--white)}
+th{background:var(--forest);color:var(--ivory)}
+.printonly{display:none}
+@media (max-width:520px){h1{font-size:1.6rem}.opts{flex-direction:column}.opt{width:100%}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+@media (forced-colors:active){.opt:has(input:checked){outline:3px solid Highlight}}
+@media print{
+  body{background:#fff;color:#000;font-size:12pt}
+  header.band{background:#fff;color:#000;border-bottom:2px solid #000;padding:0 0 .5rem}
+  .kicker{color:#000}
+  .noprint,.skip,.row,.progress,.bar{display:none!important}
+  .card{border:1px solid #000;break-inside:avoid}
+  th{background:#fff;color:#000}
+  .printonly{display:block}
+  a{color:#000}
+}
+
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+<header class="band">
+  <div class="wrap">
+    <h1>Action Planner</h1>
+    <p>Turn one goal into a short plan with small first steps, dates, and the help you need.</p>
+  </div>
+</header>
+<main id="main" tabindex="-1">
+  <noscript><div class="warn">This activity needs JavaScript. Please turn it on, or use the Word version of the Action Planning Template.</div></noscript>
+
+  <section id="edit" aria-labelledby="editH">
+    <h2 id="editH" tabindex="-1">Build your plan</h2>
+    <div class="note"><p>Plan one goal at a time. Small, specific steps work best. Nothing you type is saved or sent anywhere, so copy or print your plan when you finish.</p></div>
+    <div id="err" class="err" role="alert"></div>
+    <form id="form" novalidate>
+      <div class="card">
+        <label class="lbl" for="goal">My goal in one sentence</label>
+        <p class="hint" id="goalHint">Example: By the end of the term, I will pass my math class so that I can stay on track for my certificate.</p>
+        <textarea id="goal" aria-describedby="goalHint"></textarea>
+        <fieldset style="margin-top:1rem">
+          <legend>This goal is about</legend>
+          <div class="opts">
+            <label class="opt" for="a1"><input type="radio" name="area" id="a1" value="my education"><span>My education</span></label>
+            <label class="opt" for="a2"><input type="radio" name="area" id="a2" value="my employment"><span>My employment</span></label>
+            <label class="opt" for="a3"><input type="radio" name="area" id="a3" value="both education and employment"><span>Both</span></label>
+          </div>
+        </fieldset>
+      </div>
+      <div id="actions"></div>
+      <div class="card">
+        <h3 style="margin-top:0">If I get stuck</h3>
+        <label class="lbl" for="obstacle">What might get in my way?</label>
+        <textarea id="obstacle"></textarea>
+        <label class="lbl" for="helper" style="margin-top:1rem">Who can I ask for help? (instructor, counselor, coach, family, friend)</label>
+        <textarea id="helper"></textarea>
+        <label class="lbl" for="checkin" style="margin-top:1rem">I will look at this plan again on</label>
+        <input type="date" id="checkin">
+      </div>
+      <div class="row"><button type="button" class="btn" id="makeBtn">Make my plan</button></div>
+    </form>
+  </section>
+
+  <section id="plan" hidden aria-labelledby="planH">
+    <h2 id="planH" tabindex="-1">My action plan</h2>
+    <div id="planBody"></div>
+    <div class="row">
+      <button type="button" class="btn" id="copyBtn">Copy my plan</button>
+      <button type="button" class="btn2" id="printBtn">Print my plan</button>
+      <button type="button" class="btn2" id="editBtn">Go back and edit</button>
+    </div>
+    <p class="hint" style="margin-top:1rem">To print from your keyboard, press Ctrl+P (Windows) or Cmd+P (Mac).</p>
+    <p id="copyMsg" role="status" class="hint"></p>
+    <div id="fallbackBox" hidden>
+      <label class="lbl" for="fallbackTa">Your browser did not allow copying. Select the text below and copy it yourself.</label>
+      <textarea id="fallbackTa" class="fallback" readonly></textarea>
+    </div>
+  </section>
+</main>
+<footer>
+  <p>Developed by Educational Management Resources Group (EMRG).</p>
+</footer>
+
+<script>
+(function(){
+"use strict";
+var $ = function(id){return document.getElementById(id);};
+function el(tag, attrs, kids){
+  var e = document.createElement(tag);
+  Object.keys(attrs||{}).forEach(function(k){ if(k==="text") e.textContent=attrs[k]; else e.setAttribute(k, attrs[k]); });
+  (kids||[]).forEach(function(c){ e.appendChild(c); });
+  return e;
+}
+var N = 3;
+var acts = $("actions");
+for(var i=1;i<=N;i++){
+  (function(i){
+    var c = el("fieldset",{});
+    c.appendChild(el("legend",{text:"Action "+i+(i===1?" (required)":" (optional)")}));
+    function field(id,label,hint,type){
+      var wrap = el("div",{style:"margin-bottom:1rem"});
+      wrap.appendChild(el("label",{"class":"lbl","for":id,text:label}));
+      if(hint){ wrap.appendChild(el("p",{"class":"hint",id:id+"h",text:hint})); }
+      var inp = type==="date" ? el("input",{type:"date",id:id}) : el("textarea",{id:id,style:"min-height:4.5rem"});
+      if(hint) inp.setAttribute("aria-describedby", id+"h");
+      wrap.appendChild(inp); return wrap;
+    }
+    c.appendChild(field("act"+i,"What will I do?", i===1?"Example: Go to the math tutoring center each week.":""));
+    c.appendChild(field("step"+i,"What is my first small step?", i===1?"Example: Look up the tutoring center hours.":""));
+    c.appendChild(field("date"+i,"By when?","", "date"));
+    c.appendChild(field("help"+i,"What help do I need?",""));
+    acts.appendChild(c);
+  })(i);
+}
+function fmt(v){
+  if(!v) return "";
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v); if(!m) return v;
+  var names=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  return names[parseInt(m[2],10)-1]+" "+parseInt(m[3],10)+", "+m[1];
+}
+function val(id){ return ($(id).value||"").trim(); }
+function data(){
+  var area = document.querySelector('input[name="area"]:checked');
+  var a = [];
+  for(var i=1;i<=N;i++){ if(val("act"+i)) a.push({n:a.length+1,act:val("act"+i),step:val("step"+i),date:fmt($("date"+i).value),help:val("help"+i)}); }
+  return {goal:val("goal"),area:area?area.value:"",acts:a,obstacle:val("obstacle"),helper:val("helper"),checkin:fmt($("checkin").value)};
+}
+var dash = "(not filled in)";
+function render(d){
+  var b = $("planBody"); b.innerHTML = "";
+  var g = el("div",{"class":"card"});
+  g.appendChild(el("h3",{style:"margin-top:0",text:"My goal"}));
+  g.appendChild(el("p",{text:d.goal}));
+  if(d.area) g.appendChild(el("p",{text:"This goal is about "+d.area+"."}));
+  b.appendChild(g);
+  b.appendChild(el("h3",{text:"My actions"}));
+  d.acts.forEach(function(x){
+    var c = el("div",{"class":"card"});
+    c.appendChild(el("h4",{style:"margin:0 0 .5rem;font-size:1.125rem;color:#013220",text:"Action "+x.n+": "+x.act}));
+    [["First small step",x.step],["By when",x.date],["Help I need",x.help]].forEach(function(r){
+      var p = el("p",{style:"margin:0 0 .4rem"});
+      p.appendChild(el("strong",{text:r[0]+": "}));
+      p.appendChild(document.createTextNode(r[1]||dash));
+      c.appendChild(p);
+    });
+    b.appendChild(c);
+  });
+  var s = el("div",{"class":"card"});
+  s.appendChild(el("h3",{style:"margin-top:0",text:"If I get stuck"}));
+  s.appendChild(el("p",{text:"What might get in my way: "+(d.obstacle||dash)}));
+  s.appendChild(el("p",{text:"Who can help: "+(d.helper||dash)}));
+  s.appendChild(el("p",{text:"I will look at this plan again on: "+(d.checkin||dash)}));
+  b.appendChild(s);
+}
+function plainText(d){
+  var t = "MY ACTION PLAN\n\nMy goal: "+d.goal+"\n";
+  if(d.area) t += "This goal is about "+d.area+".\n";
+  t += "\nMy actions:\n";
+  d.acts.forEach(function(x){ t += x.n+". "+x.act+"\n   First small step: "+(x.step||dash)+"\n   By when: "+(x.date||dash)+"\n   Help I need: "+(x.help||dash)+"\n"; });
+  t += "\nWhat might get in my way: "+(d.obstacle||dash)+"\nWho can help: "+(d.helper||dash)+"\nI will look at this plan again on: "+(d.checkin||dash)+"\n";
+  return t;
+}
+var cur = null;
+$("makeBtn").addEventListener("click", function(){
+  var d = data(), probs = [];
+  if(!d.goal) probs.push(["goal","Write your goal in one sentence."]);
+  if(!d.acts.length) probs.push(["act1","Write at least one action."]);
+  var er = $("err");
+  if(probs.length){
+    er.className = "err warn";
+    er.textContent = "Please fix this before making your plan: " + probs.map(function(p){return p[1];}).join(" ");
+    $(probs[0][0]).focus(); return;
+  }
+  er.className = "err"; er.textContent = "";
+  cur = d; render(d);
+  $("edit").hidden = true; $("plan").hidden = false; $("copyMsg").textContent = ""; $("fallbackBox").hidden = true;
+  $("planH").focus(); window.scrollTo(0,0);
+});
+$("editBtn").addEventListener("click", function(){ $("plan").hidden = true; $("edit").hidden = false; $("editH").focus(); window.scrollTo(0,0); });
+$("printBtn").addEventListener("click", function(){ window.print(); });
+$("copyBtn").addEventListener("click", function(){
+  var t = plainText(cur);
+  function fb(){ $("fallbackTa").value = t; $("fallbackBox").hidden = false; $("copyMsg").textContent = "Copying did not work in this browser. The text is shown below so you can copy it yourself."; }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(function(){ $("fallbackBox").hidden = true; $("copyMsg").textContent = "Your plan was copied. You can paste it into a document or an email."; }, fb);
+  } else { fb(); }
+});
+})();
+</script>
+</body>
+</html>
